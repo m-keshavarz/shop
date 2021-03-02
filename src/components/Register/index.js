@@ -1,6 +1,22 @@
 import React from "react";
-import { Formik } from "formik";
-import * as Yup from "yup";
+
+// toast notifs
+import { toast } from "react-toastify";
+
+// history
+import history from "../../config/history";
+
+// react hook form
+import { useForm } from "react-hook-form";
+
+// custom hooks
+import useTitle from "../../hooks/useTitle";
+
+// redux
+import { bindActionCreators } from "redux";
+import { connect } from "react-redux";
+// actions
+import { registerUser } from "../../store/actions/auth";
 
 import {
   Container,
@@ -16,27 +32,26 @@ import {
   Error
 } from "../reusable/Register";
 
-const RegisterSchema = Yup.object().shape({
-  name: Yup.string()
-    .matches(/^[\u0600-\u06FF\s]+$/, "فقط از کاراکترهای فارسی استفاده کنید")
-    .required("این فیلد نباید خالی باشد"),
-  email: Yup.string()
-    .email("ایمیل اشتباه است")
-    .required("این فیلد نباید خالی باشد"),
-  username: Yup.string()
-    .min(3, "حداقل 3 حرف و حداکثر 15 حرف")
-    .max(15, "حداقل 3 حرف و حداکثر 15 حرف")
-    .required("این فیلد نباید خالی باشد"),
-  password: Yup.string()
-    .min(6, "حداقل 6 کاراکتر")
-    .required("این فیلد نباید خالی باشد"),
-  rules: Yup.boolean()
-    .required("تیک را بزنید")
-    .oneOf([true], "باید قوانین را قبول کنید")
-});
+const Register = ({ auth, registerUser }) => {
+  useTitle("ثبت نام");
+  const { register, handleSubmit, errors } = useForm();
+  const onSubmit = (data) => {
+    registerUser(data, {
+      onSuccess: (name) => {
+        toast.info(`${name} عزیز خوش آمدید`);
+        history.push("/");
+      },
+      onError: (err) => {
+        toast.error(err.message, {
+          rtl: false
+        });
+      }
+    });
+  };
 
-export default function Register() {
-  document.title = "ثبت نام";
+  // eslint-disable-next-line
+  const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
   return (
     <Container className="fade">
       <Wrapper>
@@ -47,123 +62,125 @@ export default function Register() {
             تخفیفات ویژه بهره مند شوید
           </p>
         </Header>
-        <Formik
-          initialValues={{
-            name: "",
-            email: "",
-            username: "",
-            password: "",
-            rules: false
-          }}
-          validationSchema={RegisterSchema}
-          validateOnBlur={false}
-          onSubmit={(values, { setSubmitting }) => {
-            setTimeout(() => {
-              alert(JSON.stringify(values, null, 2));
-              setSubmitting(false);
-            }, 400);
-          }}
-        >
-          {({
-            values,
-            errors,
-            touched,
-            handleChange,
-            handleBlur,
-            handleSubmit,
-            isSubmitting
-          }) => (
-            <Form onSubmit={handleSubmit}>
-              <UserInfo>اطلاعات کاربری</UserInfo>
-              <FormItem>
-                <Input
-                  type="text"
-                  name="name"
-                  id="name"
-                  placeholder="نام و نام خانوادگی خود را وارد کنید (فقط فارسی)"
-                  autoComplete="off"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.name}
-                />
-                <Error>{errors.name && touched.name && errors.name}</Error>
-              </FormItem>
-              <FormItem>
-                <Input
-                  type="text"
-                  name="email"
-                  id="email"
-                  placeholder="ایمیل خود را وارد کنید"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.email}
-                />
-                <Error>{errors.email && touched.email && errors.email}</Error>
-              </FormItem>
-              <FormItem>
-                <Input
-                  type="text"
-                  name="username"
-                  id="username"
-                  placeholder="نام کاربری خود را وارد کنید"
-                  autoComplete="off"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.username}
-                />
-                <Error>
-                  {errors.username && touched.username && errors.username}
-                </Error>
-              </FormItem>
-              <FormItem>
-                <Input
-                  type="password"
-                  name="password"
-                  id="password"
-                  placeholder="رمز عبور را وارد کنید"
-                  autoComplete="off"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.password}
-                />
-                <Error>{errors.password && touched.password && errors.password}</Error>
-              </FormItem>
-              <FormItem>
-                <Rules htmlFor="rules">
-                  <input
-                    type="checkbox"
-                    name="rules"
-                    id="rules"
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    value={values.rules}
-                  />
-                  <span>
-                    با تمام{" "}
-                    <a href="##" className="forgot-pass" target="_blank">
-                      قوانین
-                    </a>{" "}
-                    سایت موافقم
-                  </span>
-                </Rules>
-                <Error>
-                  {errors.rules && touched.rules && errors.rules}
-                </Error>
-              </FormItem>
-              <FormItem>
-                <Button type="submit" disabled={isSubmitting}>
-                  ثبت نام
-                </Button>
-              </FormItem>
-              <FormItem>
-                <LoginLink to="/login">
-                  حساب کاربری دارید؟ از اینجا وارد شوید
-                </LoginLink>
-              </FormItem>
-            </Form>
-          )}
-        </Formik>
+
+        <Form onSubmit={handleSubmit(onSubmit)}>
+          <UserInfo>اطلاعات کاربری</UserInfo>
+          <FormItem>
+            <Input
+              type="text"
+              name="name"
+              placeholder="نام و نام خانوادگی خود را وارد کنید (فقط فارسی)"
+              autoComplete="off"
+              defaultValue=""
+              ref={register({
+                required: "این فیلد نباید خالی باشد",
+                pattern: {
+                  value: /^[\u0600-\u06FF\s]+$/,
+                  message: "فقط از کاراکترهای فارسی استفاده کنید"
+                }
+              })}
+            />
+          </FormItem>
+          <Error>{errors?.name?.message}</Error>
+          <FormItem>
+            <Input
+              type="text"
+              name="email"
+              placeholder="ایمیل خود را وارد کنید"
+              autoComplete="off"
+              defaultValue=""
+              ref={register({
+                required: "این فیلد نباید خالی باشد",
+                pattern: {
+                  value: emailPattern,
+                  message: "ایمیل را بصورت صحیح وارد کنید"
+                }
+              })}
+            />
+            <Error>{errors?.email?.message}</Error>
+          </FormItem>
+          <FormItem>
+            <Input
+              type="text"
+              name="username"
+              placeholder="نام کاربری خود را وارد کنید"
+              autoComplete="off"
+              defaultValue=""
+              ref={register({
+                required: "این فیلد نباید خالی باشد",
+                minLength: {
+                  value: 3,
+                  message: "حداقل 3 کاراکتر"
+                },
+                maxLength: {
+                  value: 20,
+                  message: "حداکثر 20 کاراکتر"
+                }
+              })}
+            />
+            <Error>{errors?.username?.message}</Error>
+          </FormItem>
+          <FormItem>
+            <Input
+              type="password"
+              name="password"
+              placeholder="رمز عبور را وارد کنید"
+              autoComplete="off"
+              defaultValue=""
+              ref={register({
+                required: "این فیلد نباید خالی باشد",
+                minLength: {
+                  value: 6,
+                  message: "حداقل 6 کاراکتر"
+                }
+              })}
+            />
+            <Error>{errors?.password?.message}</Error>
+          </FormItem>
+          <FormItem>
+            <Rules htmlFor="rules">
+              <input
+                type="checkbox"
+                name="rules"
+                ref={register({
+                  required: "باید قوانین تایید شود"
+                })}
+              />
+              <span>
+                با تمام{" "}
+                <a href="##" className="forgot-pass" target="_blank">
+                  قوانین
+                </a>{" "}
+                سایت موافقم
+              </span>
+            </Rules>
+            <Error>{errors?.rules?.message}</Error>
+          </FormItem>
+          <FormItem>
+            <Button type="submit" disabled={auth.loading}>
+              ثبت نام
+            </Button>
+          </FormItem>
+          <FormItem>
+            <LoginLink to="/login">
+              حساب کاربری دارید؟ از اینجا وارد شوید
+            </LoginLink>
+          </FormItem>
+        </Form>
       </Wrapper>
     </Container>
   );
-}
+};
+
+const mapStateToProps = ({ auth }) => ({ auth });
+
+const mapDispatchToProps = (dispatch) => {
+  return bindActionCreators(
+    {
+      registerUser
+    },
+    dispatch
+  );
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Register);

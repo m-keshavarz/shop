@@ -72,6 +72,7 @@ class Navbar extends React.Component {
     return this.props.location.pathname === path ? "active" : "";
   };
   render() {
+    console.log(this.props.match);
     return (
       <header>
         <ToggleTopNavbar type="checkbox" id="toggle-top-navbar" />

@@ -1,11 +1,10 @@
 import React, { Component } from "react";
 import styled from "styled-components";
-import axios from "axios";
 
 import TopMenu from "../Home/TopMenu";
 import Sidebar from "./Sidebar";
 import Filters from "./Filters";
-import Item from "../reusable/Products/Item";
+// import Item from "../reusable/Products/Item";
 
 const Wrapper = styled.div`
   display: flex;
@@ -36,12 +35,6 @@ class Products extends Component {
     products: []
   };
 
-  componentDidMount() {
-    axios.get(`http://localhost:8000/api/products`).then(res => {
-      const products = res.data;
-      this.setState({ products });
-    });
-  }
   render() {
     return (
       <>
@@ -51,7 +44,7 @@ class Products extends Component {
           <ProductList>
             <Filters />
             <ProductItems>
-              {this.state.products.map(product => {
+              {this.state.products.map((product) => {
                 return <li key={product.id}>{product.title}</li>;
               })}
             </ProductItems>
